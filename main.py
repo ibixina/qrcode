@@ -6,7 +6,48 @@ character count indicator
 message
 terminator: 4 0s or less to reach the capacity
 """
+def mapletFFGenerator(n):
+    field = [
+             [0, 0, 0, 0, 0, 0, 0, 1],
+             [0, 0, 0, 0, 0, 0, 1, 0],
+             [0, 0, 0, 0, 0, 1, 0, 0],
+             [0, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0, 0, 0],
+             [0, 1, 0, 0, 0, 0, 0, 0],
+             [1, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 1, 1, 0, 1],]
 
+    mapping = {}
+
+    for i in range(9):
+        str_key = "".join(str(i) for i in field[i])
+        mapping[str_key] = i
+
+    l_8 = field[-1]
+
+    if n > 9:
+        for index in range(9, n):
+            l = field[-1]
+            # shift to the right
+            new_l = l[1:] + [0]
+            # if l[0] was 1, then add l_8
+            if l[0] == 1:
+                new_l = [i + j for i, j in zip(l_8, new_l)]
+            new_l = [i % 2 for i in new_l]
+            field.append(new_l)
+            str_key = "".join(str(i) for i in new_l)
+            mapping[str_key] = index
+
+    for key, value in mapping.items():
+        print(key, value)
+
+    return mapping
+
+
+
+
+field_mapping = mapletFFGenerator(255)
 
 def print_qrcode(grid):
     for row in grid:
@@ -54,8 +95,16 @@ def generate_qrcode(text):
     print(final_bytes)
 
     joined = "".join(final_bytes)
+
+    bytes_rearranged = []
     for i in range(0, len(joined), 8):
         print(joined[i:i+8], end = " ")
+        bytes_rearranged.append(joined[i:i+8])
+    print()
+
+
+    for byte in bytes_rearranged:
+        print(field_mapping[byte], end = " ")
     print()
     
 
@@ -63,4 +112,21 @@ def generate_qrcode(text):
 
 
 
-generate_qrcode("https://atcm.mathandtech.org/")
+
+# generate_qrcode("https://atcm.mathandtech.org/")
+
+def gf256_generator(n):
+    poly = 0b100011011
+    state = 1
+    mapping = {}
+    for i in range(n):
+        mapping[state] = i
+        state <<= 1
+        if state & 0x100:  # if overflow beyond 8 bits
+            state ^= poly
+    return mapping
+
+field_mapping = gf256_generator(256)
+
+for key, value in field_mapping.items():
+    print(key, value)
